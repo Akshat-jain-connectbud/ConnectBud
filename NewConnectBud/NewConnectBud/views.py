@@ -4,28 +4,19 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from django.views.decorators.csrf import csrf_protect,csrf_exempt
-#from django_rest_params.decorators import params
-
-from django.contrib.auth.forms import User
-from os.path import basename
-import os
-import PIL
-from PIL import Image
 from django.conf import settings
 from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
-    HTTP_200_OK
-)
+    HTTP_200_OK)
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
-from . models import UserProfile,UserWithroles,UserRoles
+from . models import UserProfile,UserWithroles
 
 
 @csrf_exempt
 @api_view(["POST"])
-#@params(username=str , password=str )
 @permission_classes((AllowAny,))
 def login(request):
     username = request.data.get("username")
@@ -41,20 +32,6 @@ def login(request):
     return Response({'token': token.key},
                     status=HTTP_200_OK)
 
-
-''''@api_view(['POST'])
-def register_user(request):
-    serialized = SignUpForm(data=request.DATA)
-    if serialized.is_valid():
-        return Response({'token': '123'},status=HTTP_200_OK)
-        User.objects.create_user(
-            serialized.init_data['email'],
-            serialized.init_data['username'],
-            serialized.init_data['password']
-        )
-        return Response(serialized.data, status='HTTP_201_CREATED')
-    else:
-        return Response(serialized._errors, status='HTTP_400_BAD_REQUEST')'''
 
 @csrf_exempt
 @api_view(["POST"])
@@ -96,7 +73,7 @@ def facebook_login(request):
     #    return HttpResponse('0') # already logged in
     # else:
     if request.method == 'POST':
-        fbid = request.kwPOST['fbid']
+        fbid = request.POST['fbid']
         fname = request.POST['first_name']
         lname = request.POST['last_name']
         username = request.POST['username']
@@ -144,7 +121,6 @@ def facebook_login(request):
             if UserProfile.objects.filter(facebook_id=fbid).exists():
                 fbprofile = UserProfile.objects.get(facebook_id=fbid)
                 UserData = User.objects.get(email=email)
-                # request.session['member_id'] = fbprofile.user_id
                 rtn_obj['ack'] = "1"
                 rtn_obj['user_id'] = str(UserData.id)
                 rtn_obj['first_name'] = fname
@@ -188,54 +164,6 @@ def facebook_login(request):
                 )
                 user_withroles.save()
 
-                uprofile_update = UserProfile.objects.get(user_id=int(userID))
-                if uprofile_update.cover_pic:
-                    image_path = settings.MEDIA_ROOT + "/" + uprofile_update.cover_pic.name
-                    base = basename(uprofile_update.cover_pic.url)
-                    fname_concat = os.path.splitext(base)[0]
-                    imgthumb_path = settings.MEDIA_ROOT + "/thumbnail/" + fname_concat + ".jpg"
-                    imgmedium_path = settings.MEDIA_ROOT + "/medium/" + fname_concat + ".jpg"
-                    # os.unlink(image_path)
-                    # os.unlink(imgthumb_path)
-                    # os.unlink(imgmedium_path)
-                    uprofile_update.cover_pic = request.FILES['cover_pic']
-                else:
-                    uprofile_update.cover_pic = request.FILES['cover_pic']
-
-                uprofile_update.save()
-                base = basename(uprofile_update.cover_pic.url)
-                fname_concat = os.path.splitext(base)[0]
-
-                imgthumb = Image.open(settings.MEDIA_ROOT + "/" + uprofile_update.cover_pic.name)
-                imgthumb = imgthumb.resize((200, 200), PIL.Image.ANTIALIAS)
-                # imgthumb.thumbnail(size, Image.ANTIALIAS)
-                imgthumb.save(settings.MEDIA_ROOT + "/thumbnail/" + fname_concat + ".jpg")
-                uprofile_update.thumbnail = "/thumbnail/" + fname_concat + ".jpg"
-
-                img = Image.open(settings.MEDIA_ROOT + "/" + uprofile_update.cover_pic.name)
-                img = img.resize((365, 309), PIL.Image.ANTIALIAS)
-                img.save(settings.MEDIA_ROOT + "/medium/" + fname_concat + ".jpg")
-                uprofile_update.medium = "/medium/" + fname_concat + ".jpg"
-                uprofile_update.save()
-
-                # request.session['member_id'] = user.id
-                rtn_obj['ack'] = "1"
-                rtn_obj['user_id'] = str(userID)
-                rtn_obj['first_name'] = fname
-                rtn_obj['last_name'] = lname
-                rtn_obj['email'] = email
-                rtn_obj['fb_id'] = fbid
-                rtn_obj['date'] = date
-                rtn_obj['month'] = month
-                rtn_obj['year'] = year
-                rtn_obj['gender'] = gender
-                rtn_obj['msg_error'] = " Log In Successfull! "
-                data = json.dumps(rtn_obj)
-                return HttpResponse(data)
-
-@csrf_exempt
-@api_view(["POST"])
-@permission_classes((AllowAny,))
 def google_login(request):
     import json
     rtn_obj = {}
@@ -330,47 +258,3 @@ def google_login(request):
                 )
                 user_withroles.save()
 
-                uprofile_update = UserProfile.objects.get(user_id=int(userID))
-                if uprofile_update.cover_pic:
-                    image_path = settings.MEDIA_ROOT + "/" + uprofile_update.cover_pic.name
-                    base = basename(uprofile_update.cover_pic.url)
-                    fname_concat = os.path.splitext(base)[0]
-                    imgthumb_path = settings.MEDIA_ROOT + "/thumbnail/" + fname_concat + ".jpg"
-                    imgmedium_path = settings.MEDIA_ROOT + "/medium/" + fname_concat + ".jpg"
-                    # os.unlink(image_path)
-                    # os.unlink(imgthumb_path)
-                    # os.unlink(imgmedium_path)
-                    uprofile_update.cover_pic = request.FILES['cover_pic']
-                else:
-                    uprofile_update.cover_pic = request.FILES['cover_pic']
-
-                uprofile_update.save()
-                base = basename(uprofile_update.cover_pic.url)
-                fname_concat = os.path.splitext(base)[0]
-
-                imgthumb = Image.open(settings.MEDIA_ROOT + "/" + uprofile_update.cover_pic.name)
-                imgthumb = imgthumb.resize((200, 200), PIL.Image.ANTIALIAS)
-                # imgthumb.thumbnail(size, Image.ANTIALIAS)
-                imgthumb.save(settings.MEDIA_ROOT + "/thumbnail/" + fname_concat + ".jpg")
-                uprofile_update.thumbnail = "/thumbnail/" + fname_concat + ".jpg"
-
-                img = Image.open(settings.MEDIA_ROOT + "/" + uprofile_update.cover_pic.name)
-                img = img.resize((365, 309), PIL.Image.ANTIALIAS)
-                img.save(settings.MEDIA_ROOT + "/medium/" + fname_concat + ".jpg")
-                uprofile_update.medium = "/medium/" + fname_concat + ".jpg"
-                uprofile_update.save()
-
-                # request.session['member_id'] = user.id
-                rtn_obj['ack'] = "1"
-                rtn_obj['user_id'] = str(userID)
-                rtn_obj['first_name'] = fname
-                rtn_obj['last_name'] = lname
-                rtn_obj['email'] = email
-                rtn_obj['gp_id'] = gpid
-                rtn_obj['date'] = date
-                rtn_obj['month'] = month
-                rtn_obj['year'] = year
-                rtn_obj['gender'] = gender
-                rtn_obj['msg_error'] = " Log In Successfull! "
-                data = json.dumps(rtn_obj)
-                return HttpResponse(data)

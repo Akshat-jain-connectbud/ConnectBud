@@ -15,6 +15,8 @@ class UserProfile(models.Model):
     email = models.TextField(null=True)
     password1 = models.TextField(null=True)
     password2 = models.TextField(null=True)
+    facebook_id = models.TextField(null=True)
+
 
 class UserWithroles(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
